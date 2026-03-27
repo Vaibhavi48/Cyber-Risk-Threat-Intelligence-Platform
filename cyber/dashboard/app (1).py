@@ -5,6 +5,7 @@ import time, os, sys
 import pandas as pd
 import requests as _req 
 from datetime import datetime
+import plotly.express as px # Added for home page charts
 from dotenv import load_dotenv 
 load_dotenv()
 
@@ -24,6 +25,12 @@ import dashboard.content_pages.scan_history_content as scan_history_page
 
 
 st.set_page_config(page_title='CyberScan Pro', page_icon='🛡️', layout='wide')
+
+# Chart colors to match dark theme (defined here for global use)
+CHART_BG = "#1e2130"
+GRID_COL = "#2d3148"
+FONT_COL = "#e2e8f0"
+
 
 # ── Credentials & Targets Configuration ───────────────────────────────────────
 VT_KEY          = os.environ.get('VT_API_KEY', '')
@@ -60,7 +67,6 @@ st.sidebar.markdown(
 st.sidebar.divider()
 
 # 2. Custom Navigation Links
-# Map display names to internal page keys
 PAGE_OPTIONS = {
     "Home": "Home",
     "Scan History": "Scan History",
@@ -229,7 +235,7 @@ if st.session_state.current_page == "Home":
         status.success(f'Scan complete! Found {len(df_enriched)} ports across {df_enriched["ip"].nunique()} hosts.')
         st.rerun()
 
-    # ── Main Dashboard Summary Display (UPDATED) ──────────────────────────────────
+    # ── Main Dashboard Summary Display (Home Page Charts) ──────────────────────────────────
     df_current = st.session_state.df
 
     if df_current is None or df_current.empty:
@@ -245,7 +251,7 @@ if st.session_state.current_page == "Home":
         host_sum = build_host_summary(df_current)
         summary  = generate_summary(df_current, host_sum)
 
-        st.subheader('Current Scan Posture:')
+        # Banner : critical condition
         st.markdown(
             f'<div style="background:{summary["colour"]};padding:16px;'
             f'border-radius:8px;text-align:center;">'
@@ -255,23 +261,66 @@ if st.session_state.current_page == "Home":
         )
         st.divider()
 
+        # KPIs
         st.subheader('Key Performance Indicators:')
-        c1, c2, c3, c4, c5 = st.columns(5)
-        c1.metric('🖥️ Total Hosts',     summary['total_hosts'])
-        c2.metric('🔓 Open Ports',     summary['total_ports'])
-        c3.metric('🚨 Critical Hosts', summary['crit_hosts'])
-        c4.metric('⚠️ High Risk Hosts', summary['high_hosts'])
-        c5.metric('🦠 VT Flagged IPs',  summary['vt_flagged'])
+        kpi_cols = st.columns(5)
+        kpi_cols[0].metric('🖥️ Total Hosts',     summary['total_hosts'])
+        kpi_cols[1].metric('🔓 Ports',     summary['total_ports'])
+        kpi_cols[2].metric('🚨 Critical',  summary['crit_hosts'])
+        kpi_cols[3].metric('⚠️ High',      summary['high_hosts'])
+        kpi_cols[4].metric('🦠 VT Hits',   summary['vt_flagged'])
         st.divider()
 
-        st.info('👈 Use the sidebar navigation to view **`🔍 Analysis`** for detailed findings and recommendations, or **`📜 Scan History`** for past reports.')
+        # New: Summary Charts for Home Page (matching Page 1 mockup)
+        st.subheader('Quick Overview Charts')
+        chart_row_home_1 = st.columns(3) # 3 columns for 3 bar charts as in mockup
+        
+        # This data is dummy/seasonal in the mockup, let's adapt it to network scan data
+        # For home page, let's use some aggregated counts or risks
+        
+        # Chart 1: Open Ports per Host (Top 3)
+        with chart_row_home_1[0]:
+            st.markdown("##### Open Ports (Top Hosts)")
+            top_open_ports = host_sum.nlargest(3, 'open_ports')[['ip', 'open_ports']].set_index('ip')
+            fig_open_ports_home = px.bar(top_open_ports, y='open_ports', text='open_ports',
+                                         labels={'open_ports': 'Open Ports'})
+            fig_open_ports_home.update_traces(marker_color=['#1f77b4', '#ff7f0e', '#2ca02c']) # Custom colors
+            fig_open_ports_home.update_layout(height=250, margin=dict(l=20, r=20, t=30, b=20), showlegend=False, 
+                                            paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color=FONT_COL,
+                                            xaxis_title=None, yaxis_title="Open Ports", xaxis=dict(gridcolor=GRID_COL), yaxis=dict(gridcolor=GRID_COL))
+            st.plotly_chart(fig_open_ports_home, width='stretch')
+
+        # Chart 2: Max Risk (Top 3 Hosts)
+        with chart_row_home_1[1]:
+            st.markdown("##### Max Risk (Top Hosts)")
+            top_max_risk = host_sum.nlargest(3, 'max_risk')[['ip', 'max_risk']].set_index('ip')
+            fig_max_risk_home = px.bar(top_max_risk, y='max_risk', text='max_risk',
+                                       labels={'max_risk': 'Max Risk Score'})
+            fig_max_risk_home.update_traces(marker_color=['#d62728', '#8c564b', '#e377c2']) # Custom colors
+            fig_max_risk_home.update_layout(height=250, margin=dict(l=20, r=20, t=30, b=20), showlegend=False,
+                                            paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color=FONT_COL,
+                                            xaxis_title=None, yaxis_title="Max Risk Score", xaxis=dict(gridcolor=GRID_COL), yaxis=dict(gridcolor=GRID_COL))
+            st.plotly_chart(fig_max_risk_home, width='stretch')
+
+        # Chart 3: VT Flagged (Top 3 Hosts)
+        with chart_row_home_1[2]:
+            st.markdown("##### VT Flagged (Top Hosts)")
+            top_vt_flagged = host_sum.nlargest(3, 'malicious')[['ip', 'malicious']].set_index('ip')
+            fig_vt_flagged_home = px.bar(top_vt_flagged, y='malicious', text='malicious',
+                                        labels={'malicious': 'VT Malicious Reports'})
+            fig_vt_flagged_home.update_traces(marker_color=['#bcbd22', '#17becf', '#7f7f7f']) # Custom colors
+            fig_vt_flagged_home.update_layout(height=250, margin=dict(l=20, r=20, t=30, b=20), showlegend=False,
+                                            paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color=FONT_COL,
+                                            xaxis_title=None, yaxis_title="VT Malicious Reports", xaxis=dict(gridcolor=GRID_COL), yaxis=dict(gridcolor=GRID_COL))
+            st.plotly_chart(fig_vt_flagged_home, width='stretch')
+            
+        st.divider()
+        st.info('👈 Use the sidebar navigation to visit **`📜 Scan History`**, **`🔍 Analysis`** for detailed findings, or **`💾 Export`** for reports.')
+
 
 elif st.session_state.current_page == "Scan History":
     scan_history_page.render_page()
 elif st.session_state.current_page == "Analysis":
     analysis_page.render_page()
 elif st.session_state.current_page == "Export":
-<<<<<<< HEAD
     export_page.render_page()
-=======
->>>>>>> temp-save
