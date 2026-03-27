@@ -108,3 +108,174 @@ Stores:
 ---
 
 ## 🗂️ Project Structure
+cyberisk_platform/
+│
+├── modules/
+│   ├── scanner.py
+│   ├── analyser.py
+│   ├── database.py
+│   ├── emailer.py
+│   ├── pdf_generator.py
+│
+├── dashboard/
+│   ├── app.py
+│
+├── api.py
+├── requirements.txt
+├── .env
+└── cyberscan.db
+
+---
+
+## ⚙️ Setup Instructions
+
+### 1️⃣ Clone Project
+
+```bash
+git clone <your-repo-url>
+cd cyberisk_platform
+```
+
+---
+
+### 2️⃣ Create Virtual Environment
+
+```bash
+python -m venv venv
+venv\Scripts\activate
+```
+
+---
+
+### 3️⃣ Install Dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+---
+
+### 4️⃣ Install Nmap
+
+Download from:
+👉 https://nmap.org/download.html
+
+✔ Make sure Nmap is added to PATH
+
+---
+
+### 5️⃣ Configure `.env`
+
+Create `.env` file:
+
+```env
+VT_API_KEY=your_virustotal_key
+CYBERSCAN_API_KEY=your_generated_key
+
+GMAIL_SENDER=your_email@gmail.com
+GMAIL_PASSWORD=your_app_password
+GMAIL_RECIPIENT=receiver_email@gmail.com
+```
+
+---
+
+## ▶️ Run Application
+
+### 🔹 Start Backend
+
+```bash
+uvicorn api:app --reload
+```
+
+---
+
+### 🔹 Start Dashboard
+
+```bash
+streamlit run dashboard/app.py
+```
+
+---
+
+## 🌐 Usage
+
+1. Enter target:
+
+```
+scanme.nmap.org
+```
+
+2. Click:
+
+```
+🚀 Run Scan
+```
+
+3. View:
+
+* Risk scores
+* Charts
+* Services
+* Recommendations
+* Email report
+* PDF report
+
+---
+
+## 📊 Example Output
+
+| IP       | Port | Service | Risk Score | Severity    |
+| -------- | ---- | ------- | ---------- | ----------- |
+| 10.0.0.3 | 23   | telnet  | 10.0       | 🔴 Critical |
+| 10.0.0.2 | 21   | ftp     | 6.5        | 🟠 High     |
+| 10.0.0.1 | 22   | ssh     | 1.2        | 🟢 Low      |
+
+---
+
+## 🎯 Safe Targets for Testing
+
+✔ scanme.nmap.org
+✔ testphp.vulnweb.com
+✔ localhost
+
+❌ Do NOT scan unauthorized systems
+
+---
+
+## 🧠 Technologies Used
+
+* Python
+* Nmap
+* VirusTotal API
+* Streamlit
+* FastAPI
+* SQLite
+* Plotly
+
+---
+
+## 🚀 Future Improvements
+
+* Multi-target scanning
+* CVE vulnerability detection
+* AI-based risk prediction
+* Real-time threat feeds
+
+---
+
+## ⚠️ Disclaimer
+
+This project is for **educational purposes only**.
+
+Do NOT scan:
+
+* Unauthorized systems
+* Government networks
+* Private infrastructure without permission
+
+---
+
+## 👩‍💻 Author
+
+**Vaibhavi**
+Technology Enthusiast | Developer
