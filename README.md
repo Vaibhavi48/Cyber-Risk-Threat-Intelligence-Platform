@@ -108,6 +108,7 @@ Stores:
 ---
 
 ## 🗂️ Project Structure
+```
 cyberisk_platform/
 │
 ├── modules/
@@ -124,8 +125,7 @@ cyberisk_platform/
 ├── requirements.txt
 ├── .env
 └── cyberscan.db
-
----
+```
 
 ## ⚙️ Setup Instructions
 
